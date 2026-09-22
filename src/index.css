@@ -84,7 +84,7 @@
   --sidebar-ring: oklch(0.723 0.014 214.4);
 }
 
-.dark {
+html.dark {
   --background: #000000;
   --foreground: #ffffff;
   --card: #141414;
@@ -108,9 +108,10 @@
   --chart-3: #999999;
   --chart-4: #666666;
   --chart-5: #3a3a3a;
-  /* Dark-theme ramp: same hues lightened (3 & 4 already read on black). */
-  --profile-1: color-mix(in srgb, #091540 55%, white);
-  --profile-2: color-mix(in srgb, #1B2CC1 65%, white);
+  /* Dark-theme ramp: same hues lightened for contrast on black.
+     1 & 2 are mixed further toward white so translucent flows stay readable. */
+  --profile-1: color-mix(in srgb, #091540 38%, white);
+  --profile-2: color-mix(in srgb, #1B2CC1 48%, white);
   --profile-3: #7692FF;
   --profile-4: #ABD2FA;
   --sidebar: oklch(0.218 0.008 223.9);
@@ -158,7 +159,7 @@
 }
 
 /* Profile palette: replace these 4 vars to recolor all grouped charts.
-   Exact hexes here (light theme); lightened ramp lives in the `.dark` block. */
+   Exact hexes here (light theme); lightened ramp lives in the `html.dark` block. */
 :root {
   --heat: 255, 255, 255;
   --profile-1: #091540;

@@ -83,7 +83,7 @@ export default function Viewing() {
         fill="none"
         stroke={profileColorVar(bare, rankedProfiles)}
         strokeWidth={Math.max(linkWidth, 1)}
-        strokeOpacity={0.55}
+        strokeOpacity={0.8}
       />
     )
   }
@@ -207,6 +207,7 @@ export default function Viewing() {
                 <Tooltip
                   contentStyle={tooltipStyle}
                   labelStyle={{ color: 'var(--color-ink)', fontFamily: 'JetBrains Mono, monospace' }}
+                  itemStyle={{ color: 'var(--color-ink)' }}
                   formatter={((value: unknown, name: unknown) => {
                     const text = String(name ?? '')
                     const bare = text.includes(':') ? text.slice(text.indexOf(':') + 1) : text
