@@ -5,6 +5,7 @@ import {
 import { usePending, useRows } from '../lib/store'
 import { dayKey, fmtDuration, fmtHours, parseTs, toSeconds, topN } from '../lib/utils'
 import { monthlyViewing, viewingFlow } from '../lib/analytics'
+import { profileColorVar } from '../lib/profiles'
 import { BarList, Card, Empty, InsightsCard, KpiGrid, SectionTitle, TabSkeleton } from '../components/ui'
 import { Button } from '../components/ui/button'
 import { Label } from '../components/ui/label'
@@ -52,6 +53,41 @@ export default function Viewing() {
   const profileRows = (profile ? viewing.filter((r) => (r['Profile Name'] || 'Unknown') === profile) : viewing)
   const trend = monthlyViewing(profileRows)
   const flow = viewingFlow(profileRows)
+  const rankedProfiles = topN(filtered, (s) => s.profile).map((r) => r.name)
+  const shortName = (name: string) => {
+    const bare = name.includes(':') ? name.slice(name.indexOf(':') + 1) : name
+    return bare.length > 26 ? `${bare.slice(0, 25)}…` : bare
+  }
+  const sankeyNode = (props: any) => {
+    const { x, y, width, height, payload } = props
+    const name: string = payload.name ?? ''
+    const isProfile = name.startsWith('Profile:')
+    const bare = shortName(name)
+    const fill = isProfile ? profileColorVar(bare, rankedProfiles) : 'var(--color-faint)'
+    const labelX = isProfile ? x - 8 : x + width + 8
+    return (
+      <g>
+        <rect x={x} y={y} width={width} height={Math.max(height, 2)} fill={fill} stroke="var(--color-line)" />
+        <text x={labelX} y={y + height / 2} dy="0.35em" textAnchor={isProfile ? 'end' : 'start'} fill="var(--color-body)" fontSize={12}>
+          {bare}
+        </text>
+      </g>
+    )
+  }
+  const sankeyLink = (props: any) => {
+    const { sourceX, sourceY, targetX, targetY, sourceControlX, targetControlX, linkWidth, payload } = props
+    const sourceName: string = payload.source.name ?? ''
+    const bare = sourceName.startsWith('Profile:') ? sourceName.slice('Profile:'.length) : shortName(sourceName)
+    return (
+      <path
+        d={`M ${sourceX},${sourceY} C ${sourceControlX},${sourceY} ${targetControlX},${targetY} ${targetX},${targetY}`}
+        fill="none"
+        stroke={profileColorVar(bare, rankedProfiles)}
+        strokeWidth={Math.max(linkWidth, 1)}
+        strokeOpacity={0.55}
+      />
+    )
+  }
 
   const { heat, heatMax } = (() => {
     const grid: { seconds: number; sessions: Session[] }[][] = Array.from({ length: 7 }, () =>
@@ -177,10 +213,19 @@ export default function Viewing() {
                 data={flow}
                 nodePadding={16}
                 nodeWidth={12}
-                link={{ stroke: 'color-mix(in srgb, var(--color-ink) 27%, transparent)' }}
-                node={{ fill: 'var(--color-faint)', stroke: 'var(--color-line)' }}
+                margin={{ top: 5, right: 190, bottom: 5, left: 90 }}
+                link={sankeyLink}
+                node={sankeyNode}
               >
-                <Tooltip contentStyle={tooltipStyle} labelStyle={{ color: 'var(--color-ink)', fontFamily: 'JetBrains Mono, monospace' }} />
+                <Tooltip
+                  contentStyle={tooltipStyle}
+                  labelStyle={{ color: 'var(--color-ink)', fontFamily: 'JetBrains Mono, monospace' }}
+                  formatter={((value: unknown, name: unknown) => {
+                    const text = String(name ?? '')
+                    const bare = text.includes(':') ? text.slice(text.indexOf(':') + 1) : text
+                    return [Number(value ?? 0).toLocaleString(), bare]
+                  }) as never}
+                />
               </Sankey>
             </ResponsiveContainer>
           )}

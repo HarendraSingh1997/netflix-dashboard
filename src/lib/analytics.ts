@@ -105,10 +105,17 @@ export function searchFunnel(rows: Row[]) {
   ]
 }
 
-export function viewingFlow(rows: Row[]) {
+export function viewingFlow(rows: Row[], topDevices = 12) {
   const nodes: { name: string }[] = []
   const index = new Map<string, number>()
   const links = new Map<string, { source: number; target: number; value: number }>()
+  // Cap device nodes: 99 devices in 340px collapses every node to ~0 height.
+  // The tail still counts, inside an "Other devices" bucket.
+  const top = new Set(
+    orderBy(Object.entries(countBy(rows, (row) => row['Device Type'] || 'Unknown')), ([, c]) => c, 'desc')
+      .slice(0, Math.max(0, topDevices))
+      .map(([name]) => name),
+  )
   const node = (stage: string, value: string) => {
     const key = `${stage}:${value || 'Unknown'}`
     if (!index.has(key)) { index.set(key, nodes.length); nodes.push({ name: key }) }
@@ -116,7 +123,8 @@ export function viewingFlow(rows: Row[]) {
   }
   for (const row of rows) {
     const source = node('Profile', row['Profile Name'])
-    const target = node('Device', row['Device Type'])
+    const device = row['Device Type'] || 'Unknown'
+    const target = node('Device', top.has(device) ? device : 'Other devices')
     const key = `${source}:${target}`
     const link = links.get(key) ?? { source, target, value: 0 }
     link.value++
