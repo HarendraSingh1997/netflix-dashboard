@@ -61,7 +61,26 @@ UX details:
 - Skeleton loading states mirror each tab's layout while its source files parse.
 - Route loaders pre-parse each tab's files; hover/focus intent preloading starts the load before the click. Visited tabs stay mounted for instant revisits.
 
-More screenshots: `screenshots/` (landing, overview, viewing, geomap + light-mode and 390px mobile variants).
+More screenshots: `screenshots/` also holds landing, geomap, and 390px mobile variants.
+
+## Screenshots
+
+Every tab, dark and light (1440px, regenerated with `node scripts/shots-tabs.mjs`):
+
+| Tab | Dark | Light |
+| --- | --- | --- |
+| Overview | <img src="screenshots/overview-1440.png" width="420" alt="Overview dark"> | <img src="screenshots/overview-light-1440.png" width="420" alt="Overview light"> |
+| Viewing | <img src="screenshots/viewing-1440.png" width="420" alt="Viewing dark"> | <img src="screenshots/viewing-light-1440.png" width="420" alt="Viewing light"> |
+| Discovery | <img src="screenshots/discovery-1440.png" width="420" alt="Discovery dark"> | <img src="screenshots/discovery-light-1440.png" width="420" alt="Discovery light"> |
+| Ratings & My List | <img src="screenshots/ratings-1440.png" width="420" alt="Ratings dark"> | <img src="screenshots/ratings-light-1440.png" width="420" alt="Ratings light"> |
+| Profiles | <img src="screenshots/profiles-1440.png" width="420" alt="Profiles dark"> | <img src="screenshots/profiles-light-1440.png" width="420" alt="Profiles light"> |
+| Devices & locations | <img src="screenshots/devices-1440.png" width="420" alt="Devices dark"> | <img src="screenshots/devices-light-1440.png" width="420" alt="Devices light"> |
+| Billing | <img src="screenshots/billing-1440.png" width="420" alt="Billing dark"> | <img src="screenshots/billing-light-1440.png" width="420" alt="Billing light"> |
+| Messages & support | <img src="screenshots/messages-1440.png" width="420" alt="Messages dark"> | <img src="screenshots/messages-light-1440.png" width="420" alt="Messages light"> |
+| Games | <img src="screenshots/games-1440.png" width="420" alt="Games dark"> | <img src="screenshots/games-light-1440.png" width="420" alt="Games light"> |
+| Account | <img src="screenshots/account-1440.png" width="420" alt="Account dark"> | <img src="screenshots/account-light-1440.png" width="420" alt="Account light"> |
+| Ask | <img src="screenshots/ask-1440.png" width="420" alt="Ask dark"> | <img src="screenshots/ask-light-1440.png" width="420" alt="Ask light"> |
+| Data explorer | <img src="screenshots/explorer-1440.png" width="420" alt="Explorer dark"> | <img src="screenshots/explorer-light-1440.png" width="420" alt="Explorer light"> |
 
 ## Optional AI features (BYO key, off by default)
 

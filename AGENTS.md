@@ -38,6 +38,7 @@ node scripts/smoke.mjs         # needs dist/ + real export
 node scripts/verify-charts.mjs
 node scripts/verify-chips.mjs
 node scripts/shots.mjs
+node scripts/shots-tabs.mjs   # all 12 tabs, dark + light (screenshots/<slug>[-light]-1440.png)
 ```
 
 ## Guardrails
