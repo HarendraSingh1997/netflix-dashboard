@@ -8,6 +8,12 @@ Select the extracted export folder and explore viewing, discovery, ratings, prof
 ![Viewing](screenshots/viewing-1440.png)
 ![Devices map](screenshots/devices-map-1440.png)
 
+Light theme (persisted header toggle, same tokens):
+
+![Overview light](screenshots/overview-light-1440.png)
+![Viewing light](screenshots/viewing-light-1440.png)
+![Landing light](screenshots/landing-light-1440.png)
+
 ## Privacy
 
 - 100% local: CSV files are read with the File System Access / `<input webkitdirectory>` APIs and parsed in browser memory (Zustand store).
