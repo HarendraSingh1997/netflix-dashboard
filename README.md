@@ -33,7 +33,7 @@ Expected files (names vary by export): `ViewingActivity.csv`, `SearchHistory.csv
 
 ## Features
 
-12 URL-synced tabs (TanStack Router, hash history):
+12 URL-synced tabs (TanStack Router, hash history), reached from the left sidebar. The sidebar also carries a Files section: all 25 source files grouped in 11 folders with live record counts, each opening a dedicated per-file page (`#/file/…`):
 
 | Tab | Source files |
 | --- | --- |
@@ -102,9 +102,10 @@ src/
   router.tsx         # hash-history routes + per-tab file preload map
   shell.tsx          # root layout / not-found
   tabs/              # Overview, Viewing, Discovery, Ratings, Profiles,
-                     # Devices, Billing, Messages, Games, Account, Ask
-  components/        # DataGrid, TimeChart, ChartFrame, GeoMap, Explorer, TitleMatch
+                     # Devices, Billing, Messages, Games, Account, Ask, FileView
+  components/        # Sidebar, DataGrid, TimeChart, ChartFrame, GeoMap, Explorer, TitleMatch, Heatmap
   lib/               # store.ts (Zustand), analytics.ts, title-match.ts, jev.ts, ask/
+                     # files.ts (folder groups, slugs, pretty names), profiles.ts (palette rule)
   index.css          # Tailwind v4 theme tokens, profile palette
 scripts/
   smoke.mjs          # full 12-tab sweep against a real export

@@ -50,7 +50,7 @@ export interface AppState {
   reset: () => void
 }
 
-const KNOWN = [
+export const KNOWN = [
   'AccountDetails.csv', 'Profiles.csv', 'SubscriptionHistory.csv', 'ViewingActivity.csv',
   'SearchHistory.csv', 'Clickstream.csv', 'MessagesSentByNetflix.csv', 'PlaybackRelatedEvents.csv',
   'Ratings.csv', 'MyList.csv', 'IndicatedPreferences.csv', 'BillingHistory.csv', 'AccessAndDevices.csv',

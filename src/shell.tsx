@@ -3,6 +3,7 @@ import { Outlet, useLocation, useNavigate } from '@tanstack/react-router'
 import App, { TABS, type TabId } from './App'
 
 export function pathToTab(pathname: string): TabId {
+  if (pathname.startsWith('/file/')) return `file:${pathname.slice('/file/'.length)}`
   return (TABS.find((t) => t.path === pathname)?.id ?? 'overview') as TabId
 }
 

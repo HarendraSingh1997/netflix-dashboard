@@ -3,7 +3,7 @@ import { createServer } from 'node:http'
 import { readFile } from 'node:fs/promises'
 import { extname, join } from 'node:path'
 
-const EXPORT = '/Users/harendrasingh/Downloads/Netflix Member Information Request (HR)'
+const EXPORT = '/Users/harendrasingh/projects/Netflix/Netflix Member Information Request (HR)'
 const root = new URL('../dist', import.meta.url).pathname
 const types = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css' }
 const server = createServer(async (req, res) => {
@@ -22,10 +22,19 @@ for (const width of [1440, 390]) {
   await page.goto('http://localhost:4177/')
   await page.screenshot({ path: `screenshots/landing-${width}.png` })
   await page.setInputFiles('input[type=file]', EXPORT)
-  await page.getByText('Your time on Netflix').waitFor({ timeout: 60000 })
+  // Desktop shows the sidebar; mobile hides it behind the drawer button.
+  await Promise.race([
+    page.getByRole('navigation', { name: 'Dashboard sections' }).waitFor({ timeout: 60000 }),
+    page.getByRole('button', { name: 'Open navigation' }).waitFor({ timeout: 60000 }),
+  ])
   await page.waitForTimeout(9000)
   await page.screenshot({ path: `screenshots/overview-${width}.png`, fullPage: false })
-  await page.getByRole('tab', { name: 'Viewing', exact: true }).click()
+  if (await page.getByRole('button', { name: 'Open navigation' }).isVisible()) {
+    await page.getByRole('button', { name: 'Open navigation' }).click()
+    await page.getByRole('dialog', { name: 'Dashboard navigation' }).getByRole('button', { name: 'Viewing', exact: true }).click()
+  } else {
+    await page.getByRole('navigation', { name: 'Dashboard sections' }).getByRole('button', { name: 'Viewing', exact: true }).click()
+  }
   await page.getByText('Watch-time trend (all months').waitFor({ timeout: 90000 })
   await page.waitForTimeout(4000)
   await page.screenshot({ path: `screenshots/viewing-${width}.png`, fullPage: false })

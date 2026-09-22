@@ -16,6 +16,8 @@ This file guides coding agents working in this repo. Humans: `README.md` is the 
 
 - React Compiler is on (`vite.config.ts`): auto-memoization. Do NOT add manual `useMemo` / `useCallback` / `memo`.
 - 12 tabs defined in `src/App.tsx:26-39`. Adding a tab means: `TABS` entry + `src/tabs/X.tsx` + `TAB_FILES` entry in `src/router.tsx` + keep-mounted `TabsContent` in `App.tsx`.
+- Left sidebar (`src/components/Sidebar.tsx`): Sections nav (TABS) + Files nav (11 folder groups in `src/lib/files.ts`, record counts via `FileMeta`). Resizable 208–480px, minimize-to-rail, persisted `ni-sidebar-*` keys, mobile drawer. Active item: ink left bar + panel bg (no brand accent in this repo).
+- Per-file routes `/file/$slug` render `src/tabs/FileView.tsx` (full `FileData` table). `TabId = InsightTabId | FileTabId`; `pathToTab` maps `/file/…` prefixes. `slugify`/`prettyName`/`slugToFile` live in `src/lib/files.ts` (tested: groups cover `KNOWN` exactly once).
 - Every tab: KPI cards + insights card + monthly time chart. Tables: full card width, every source column, sortable/searchable/virtualized with faceted filter chips, no pagination.
 - Charts live in `src/components/TimeChart.tsx` / `ChartFrame.tsx` (icon-only fullscreen). Geo map in `src/components/GeoMap.tsx`.
 - Skeleton loaders must mirror the tab layout (no layout shift, no "no data" flash).

@@ -30,7 +30,7 @@ console.log('PASS: large files parsed, overview settled')
 console.log('PASS: import completes')
 
 // Chips on the All sessions table in Viewing
-await page.getByRole('tab', { name: 'Viewing', exact: true }).click()
+await page.getByRole('navigation', { name: 'Dashboard sections' }).getByRole('button', { name: 'Viewing', exact: true }).click()
 await page.getByRole('heading', { name: 'All sessions', exact: true }).waitFor({ timeout: 90000 })
 
 // Scope to the visible panel — visited tabs stay mounted in hidden panels

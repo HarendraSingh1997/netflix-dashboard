@@ -29,7 +29,7 @@ await page.getByRole('heading', { name: 'Watch time over time', exact: true }).w
 console.log('PASS: large files parsed, overview settled')
 console.log('PASS: import completes')
 
-await page.getByRole('tab', { name: 'Viewing', exact: true }).click()
+await page.getByRole('navigation', { name: 'Dashboard sections' }).getByRole('button', { name: 'Viewing', exact: true }).click()
 await page.getByText('Watch-time trend (all months').waitFor({ timeout: 90000 })
 console.log('PASS: trend line chart renders')
 await page.getByText('Profile → device flow').waitFor({ timeout: 30000 })
@@ -45,7 +45,7 @@ await page.getByRole('dialog').waitFor({ timeout: 20000 })
 console.log('PASS: chart fullscreen opens')
 await page.getByRole('button', { name: 'Close', exact: true }).click()
 
-await page.getByRole('tab', { name: 'Discovery', exact: true }).click()
+await page.getByRole('navigation', { name: 'Dashboard sections' }).getByRole('button', { name: 'Discovery', exact: true }).click()
 await page.getByText('Search funnel (all events').waitFor({ timeout: 90000 })
 console.log('PASS: funnel chart renders')
 

@@ -4,13 +4,14 @@ import {
   createRoute,
   createRouter,
 } from '@tanstack/react-router'
-import { TABS, type TabId } from './App'
+import { TABS, type InsightTabId } from './App'
 import { useApp } from './lib/store'
+import { slugToFile } from './lib/files'
 import { NotFound, Root } from './shell'
 
 // Source files each tab reads lazily. Route loaders ensure (and therefore
 // pre-parse) them, so hovering a tab starts its data load before the click.
-const TAB_FILES: Record<TabId, string[]> = {
+const TAB_FILES: Record<InsightTabId, string[]> = {
   overview: ['ViewingActivity.csv', 'Profiles.csv', 'BillingHistory.csv', 'Devices.csv', 'AccountDetails.csv'],
   viewing: ['ViewingActivity.csv'],
   discovery: ['SearchHistory.csv'],
@@ -41,7 +42,20 @@ const tabRoutes = TABS.map((t) =>
   }),
 )
 
-const routeTree = rootRoute.addChildren(tabRoutes)
+// Per-file route: /file/:slug renders the full virtualized table for one
+// uploaded CSV/TXT. The loader kicks off its parse before the panel mounts.
+const fileRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/file/$name',
+  loader: ({ params }) => {
+    const state = useApp.getState()
+    if (!state.loaded) return
+    const file = slugToFile(params.name)
+    if (file) void state.ensureFile(file)
+  },
+})
+
+const routeTree = rootRoute.addChildren([...tabRoutes, fileRoute])
 
 export const router = createRouter({ routeTree, history: createHashHistory() })
 

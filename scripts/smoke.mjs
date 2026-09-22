@@ -46,13 +46,13 @@ const TAB_CHECKS = [
   ['Data explorer', 'Source files'],
 ]
 for (const [label, expect] of TAB_CHECKS) {
-  await page.getByRole('tab', { name: label }).click()
+  await page.getByRole('navigation', { name: 'Dashboard sections' }).getByRole('button', { name: label, exact: true }).click()
   await page.getByText(expect).first().waitFor({ timeout: 60000 })
   console.log(`PASS: ${label} tab renders`)
 }
 
 // Viewing interactions: trend, sankey, heatmap dialog, fullscreen
-await page.getByRole('tab', { name: 'Viewing', exact: true }).click()
+await page.getByRole('navigation', { name: 'Dashboard sections' }).getByRole('button', { name: 'Viewing', exact: true }).click()
 await page.getByText('Watch-time trend (all months').waitFor({ timeout: 60000 })
 console.log('PASS: trend line chart renders')
 await page.getByText('Profile → device flow').waitFor()
@@ -98,12 +98,12 @@ if (!afterScroll) throw new Error('No rows rendered after virtual scroll')
 console.log(`PASS: virtual scroll responds (${afterScroll} rows in window)`)
 
 // Discovery: funnel renders with all events
-await page.getByRole('tab', { name: 'Discovery', exact: true }).click()
+await page.getByRole('navigation', { name: 'Dashboard sections' }).getByRole('button', { name: 'Discovery', exact: true }).click()
 await page.getByText('Search activity trend').waitFor({ timeout: 60000 })
 console.log('PASS: discovery trend + funnel render')
 
 // Full-data check: explorer shows full record counts, no "Showing X of" caps
-await page.getByRole('tab', { name: 'Data explorer', exact: true }).click()
+await page.getByRole('navigation', { name: 'Dashboard sections' }).getByRole('button', { name: 'Data explorer', exact: true }).click()
 await page.getByRole('heading', { name: 'Source files', exact: true }).waitFor()
 const bodyText = await page.textContent('body')
 for (const cap of ['Showing latest 100', 'Showing 60 of', 'Showing 40 of', 'Showing 36 of', 'Showing 12 of']) {
