@@ -3,15 +3,15 @@ import {
   Area, AreaChart, CartesianGrid, Line, LineChart, ResponsiveContainer, Sankey, Tooltip, XAxis, YAxis,
 } from 'recharts'
 import { usePending, useRows } from '../lib/store'
-import { dayKey, fmtDuration, fmtHours, parseTs, toSeconds, topN } from '../lib/utils'
+import { fmtDuration, parseTs, toSeconds, topN } from '../lib/utils'
 import { monthlyViewing, viewingFlow } from '../lib/analytics'
 import { profileColorVar } from '../lib/profiles'
 import { BarList, Card, Empty, InsightsCard, KpiGrid, SectionTitle, TabSkeleton } from '../components/ui'
-import { Button } from '../components/ui/button'
 import { Label } from '../components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger } from '../components/ui/select'
-import { ChartFrame, Modal } from '../components/ChartFrame'
+import { ChartFrame } from '../components/ChartFrame'
 import DataGrid from '../components/DataGrid'
+import Heatmap from '../components/Heatmap'
 
 const tooltipStyle = { background: 'var(--color-panel)', border: '1px solid var(--color-line)', borderRadius: 0 } as const
 const tickStyle = { fill: 'var(--color-subtle)', fontSize: 11, fontFamily: 'JetBrains Mono, monospace' } as const
@@ -31,7 +31,6 @@ export default function Viewing() {
   const viewing = useRows('ViewingActivity.csv')
   const pending = usePending('ViewingActivity.csv')
   const [profile, setProfile] = useState('')
-  const [drill, setDrill] = useState<{ title: string; sessions: Session[] } | null>(null)
 
   const sessions: Session[] = viewing.flatMap((row) => {
     const date = parseTs(row['Start Time'])
@@ -88,18 +87,6 @@ export default function Viewing() {
       />
     )
   }
-
-  const { heat, heatMax } = (() => {
-    const grid: { seconds: number; sessions: Session[] }[][] = Array.from({ length: 7 }, () =>
-      Array.from({ length: 24 }, () => ({ seconds: 0, sessions: [] })),
-    )
-    for (const s of filtered) {
-      const cell = grid[s.date.getUTCDay()][s.date.getUTCHours()]
-      cell.seconds += s.seconds
-      cell.sessions.push(s)
-    }
-    return { heat: grid, heatMax: Math.max(1, ...grid.flat().map((c) => c.seconds)) }
-  })()
 
   const insights = (() => {
     if (!filtered.length) return []
@@ -233,76 +220,12 @@ export default function Viewing() {
         <p className="mt-2 text-xs text-subtle">{flow.nodes.length.toLocaleString()} nodes · {flow.links.length.toLocaleString()} profile-device pairs · every session counted.</p>
       </Card>
 
-      <Card>
-        <SectionTitle>When you watch (UTC) — select any day or hour cell</SectionTitle>
-        <ChartFrame title="Day-hour heatmap">
-          <div className="overflow-x-auto">
-            <table className="text-xs tabular-nums border-separate border-spacing-0.5">
-              <thead>
-                <tr>
-                  <th><span className="sr-only">Weekday</span></th>
-                  {Array.from({ length: 24 }, (_, hour) => (
-                    <th key={hour} className="text-subtle font-normal w-5">{hour % 3 === 0 ? hour : ''}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {heat.map((row, day) => {
-                  const daySessions = row.flatMap((c) => c.sessions)
-                  const daySeconds = row.reduce((sum, c) => sum + c.seconds, 0)
-                  return (
-                    <tr key={day}>
-                      <td className="pr-2 text-right">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          style={{ borderRadius: 0 }}
-                          className="caption-mono h-auto p-0 underline decoration-dotted underline-offset-4 hover:text-ink"
-                          onClick={() => setDrill({ title: `${DAYS[day]}s — all hours (${daySessions.length.toLocaleString()} sessions)`, sessions: daySessions })}
-                          aria-label={`View all ${DAYS[day]} sessions`}
-                        >
-                          {DAYS[day]}
-                        </Button>
-                      </td>
-                      {row.map((cell, hour) => (
-                        <td key={hour}>
-                          <button
-                            onClick={() => setDrill({ title: `${DAYS[day]} ${String(hour).padStart(2, '0')}:00 UTC — ${cell.sessions.length.toLocaleString()} sessions`, sessions: cell.sessions })}
-                            aria-label={`View sessions for ${DAYS[day]} ${String(hour).padStart(2, '0')}:00, ${cell.sessions.length} sessions`}
-                            title={`${DAYS[day]} ${String(hour).padStart(2, '0')}:00 — ${fmtDuration(cell.seconds)} across ${cell.sessions.length.toLocaleString()} sessions. Activate for details.`}
-                            className="block h-5 w-5 rounded-sm"
-                            style={{ background: cell.seconds ? `rgba(var(--heat),${0.06 + 0.94 * (cell.seconds / heatMax)})` : 'var(--color-bg)' }}
-                          />
-                        </td>
-                      ))}
-                      <td className="pl-2 text-subtle whitespace-nowrap">{fmtDuration(daySeconds)}</td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          </div>
-        </ChartFrame>
-        <p className="mt-3 text-xs text-subtle">{filtered.length.toLocaleString()} sessions · {fmtHours(totalSeconds)} total across {new Set(filtered.map((s) => dayKey(s.date))).size.toLocaleString()} days</p>
-      </Card>
+      <Heatmap rows={profileRows} />
 
       <Card>
         <SectionTitle>All sessions</SectionTitle>
         <DataGrid rows={profileRows} />
       </Card>
-
-      {drill && (
-        <Modal title={drill.title} onClose={() => setDrill(null)}>
-          <DataGrid rows={drill.sessions.map((s) => ({
-            'Start Time': s.start,
-            Profile: s.profile,
-            Title: s.title,
-            Show: s.show,
-            Device: s.device,
-            Duration: fmtDuration(s.seconds),
-          }))} />
-        </Modal>
-      )}
     </div>
   )
 }
