@@ -1,0 +1,263 @@
+import { useState } from 'react'
+import {
+  Area, AreaChart, CartesianGrid, Line, LineChart, ResponsiveContainer, Sankey, Tooltip, XAxis, YAxis,
+} from 'recharts'
+import { usePending, useRows } from '../lib/store'
+import { dayKey, fmtDuration, fmtHours, parseTs, toSeconds, topN } from '../lib/utils'
+import { monthlyViewing, viewingFlow } from '../lib/analytics'
+import { BarList, Card, Empty, InsightsCard, KpiGrid, SectionTitle, TabSkeleton } from '../components/ui'
+import { Button } from '../components/ui/button'
+import { Label } from '../components/ui/label'
+import { Select, SelectContent, SelectItem, SelectTrigger } from '../components/ui/select'
+import { ChartFrame, Modal } from '../components/ChartFrame'
+import DataGrid from '../components/DataGrid'
+
+const tooltipStyle = { background: 'var(--color-panel)', border: '1px solid var(--color-line)', borderRadius: 0 } as const
+const tickStyle = { fill: 'var(--color-subtle)', fontSize: 11, fontFamily: 'JetBrains Mono, monospace' } as const
+const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+
+type Session = {
+  date: Date
+  seconds: number
+  profile: string
+  title: string
+  show: string
+  device: string
+  start: string
+}
+
+export default function Viewing() {
+  const viewing = useRows('ViewingActivity.csv')
+  const pending = usePending('ViewingActivity.csv')
+  const [profile, setProfile] = useState('')
+  const [drill, setDrill] = useState<{ title: string; sessions: Session[] } | null>(null)
+
+  const sessions: Session[] = viewing.flatMap((row) => {
+    const date = parseTs(row['Start Time'])
+    const seconds = toSeconds(row['Duration'])
+    if (!date || seconds <= 0) return []
+    return [{
+      date,
+      seconds,
+      profile: row['Profile Name'] || 'Unknown',
+      title: row['Title'] || 'Unknown',
+      show: (row['Title'] || 'Unknown').split(':')[0],
+      device: row['Device Type'] || 'Unknown',
+      start: row['Start Time'] || '',
+    }]
+  })
+  const filtered = (profile ? sessions.filter((s) => s.profile === profile) : sessions)
+  const profiles = [...new Set(sessions.map((s) => s.profile))].sort()
+  const totalSeconds = filtered.reduce((sum, s) => sum + s.seconds, 0)
+  const profileRows = (profile ? viewing.filter((r) => (r['Profile Name'] || 'Unknown') === profile) : viewing)
+  const trend = monthlyViewing(profileRows)
+  const flow = viewingFlow(profileRows)
+
+  const { heat, heatMax } = (() => {
+    const grid: { seconds: number; sessions: Session[] }[][] = Array.from({ length: 7 }, () =>
+      Array.from({ length: 24 }, () => ({ seconds: 0, sessions: [] })),
+    )
+    for (const s of filtered) {
+      const cell = grid[s.date.getUTCDay()][s.date.getUTCHours()]
+      cell.seconds += s.seconds
+      cell.sessions.push(s)
+    }
+    return { heat: grid, heatMax: Math.max(1, ...grid.flat().map((c) => c.seconds)) }
+  })()
+
+  const insights = (() => {
+    if (!filtered.length) return []
+    const out: string[] = []
+    const shows = topN(filtered, (s) => s.show)
+    if (shows[0]) out.push(`“${shows[0].name}” is the most-played title family with ${shows[0].value.toLocaleString()} sessions (${Math.round(shows[0].value / filtered.length * 100)}% of sessions).`)
+    const byHour = new Array(24).fill(0) as number[]
+    const byDay = new Array(7).fill(0) as number[]
+    for (const s of filtered) {
+      byHour[s.date.getUTCHours()] += s.seconds
+      byDay[s.date.getUTCDay()] += s.seconds
+    }
+    const peakHour = byHour.indexOf(Math.max(...byHour))
+    const peakDay = byDay.indexOf(Math.max(...byDay))
+    out.push(`Peak viewing hour is ${String(peakHour).padStart(2, '0')}:00 UTC on ${DAYS[peakDay]}s.`)
+    const longest = filtered.reduce((best, s) => (s.seconds > best.seconds ? s : best), filtered[0])
+    out.push(`Longest session: ${fmtDuration(longest.seconds)} of “${longest.title}”.`)
+    const devices = topN(filtered, (s) => s.device)
+    if (devices[0]) out.push(`${devices[0].name} carries ${devices[0].value.toLocaleString()} sessions — the primary screen.`)
+    return out.slice(0, 4)
+  })()
+
+  if (pending) return <TabSkeleton charts={4} cards={3} columns={3} table />
+  if (!viewing.length) return <Empty label="No viewing activity found in this export" />
+
+  return (
+    <div className="space-y-[120px]">
+      <div className="space-y-6">
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <h1 className="page-title">Viewing</h1>
+        <div className="flex items-center gap-2 text-sm">
+          <Label className="caption-mono">Profile</Label>
+          <Select value={profile || '__all'} onValueChange={(v) => setProfile(!v || v === '__all' ? '' : v)}>
+            <SelectTrigger aria-label="Profile" className="w-44 rounded-none border-0 border-b border-rule bg-transparent px-0 font-mono text-xs tracking-[2px] uppercase">
+              <span className="flex flex-1 items-center gap-1.5 truncate text-left">{profile || 'All profiles'}</span>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__all">All profiles</SelectItem>
+              {profiles.map((name) => <SelectItem key={name} value={name}>{name}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      <KpiGrid items={[
+        { label: 'Watch time', value: fmtDuration(totalSeconds), sub: `${filtered.length.toLocaleString()} sessions` },
+        { label: 'Titles', value: new Set(filtered.map((s) => s.title)).size.toLocaleString() },
+        { label: 'Shows / movies', value: new Set(filtered.map((s) => s.show)).size.toLocaleString() },
+        { label: 'Avg session', value: fmtDuration(filtered.length ? totalSeconds / filtered.length : 0) },
+      ]} />
+      </div>
+      <InsightsCard items={insights} />
+
+      <Card>
+        <SectionTitle>Watch-time trend (all months, hours)</SectionTitle>
+        <ChartFrame title="Monthly watch-time trend">
+          {(full) => (
+            <ResponsiveContainer width="100%" height={full ? 520 : 300}>
+              <LineChart data={trend}>
+                <CartesianGrid stroke="var(--color-line)" vertical={false} />
+                <XAxis dataKey="month" tick={tickStyle} minTickGap={24} />
+                <YAxis tick={tickStyle} />
+                <Tooltip contentStyle={tooltipStyle} labelStyle={{ color: 'var(--color-ink)', fontFamily: 'JetBrains Mono, monospace' }} />
+                <Area type="monotone" dataKey="hours" fill="color-mix(in srgb, var(--color-ink) 13%, transparent)" stroke="none" />
+                <Line type="monotone" dataKey="hours" stroke="var(--color-ink)" strokeWidth={2} dot={false} name="Hours" />
+              </LineChart>
+            </ResponsiveContainer>
+          )}
+        </ChartFrame>
+        <p className="mt-2 text-xs text-subtle">Every month in range is shown, including months with zero recorded watch time.</p>
+      </Card>
+
+      <Card>
+        <SectionTitle>Watch-time volume (all months, hours)</SectionTitle>
+        <ChartFrame title="Monthly watch-time volume">
+          {(full) => (
+            <ResponsiveContainer width="100%" height={full ? 520 : 260}>
+              <AreaChart data={trend}>
+                <CartesianGrid stroke="var(--color-line)" vertical={false} />
+                <XAxis dataKey="month" tick={tickStyle} minTickGap={24} />
+                <YAxis tick={tickStyle} />
+                <Tooltip contentStyle={tooltipStyle} labelStyle={{ color: 'var(--color-ink)', fontFamily: 'JetBrains Mono, monospace' }} />
+                <Area type="monotone" dataKey="hours" fill="color-mix(in srgb, var(--color-ink) 20%, transparent)" stroke="var(--color-ink)" name="Hours" />
+              </AreaChart>
+            </ResponsiveContainer>
+          )}
+        </ChartFrame>
+      </Card>
+
+      <div className="grid lg:grid-cols-3 gap-4">
+        <Card>
+          <SectionTitle>All shows &amp; movies</SectionTitle>
+          <BarList data={topN(filtered, (s) => s.show)} unit=" sessions" title="Shows ranked by sessions" />
+        </Card>
+        <Card>
+          <SectionTitle>All devices</SectionTitle>
+          <BarList data={topN(filtered, (s) => s.device)} unit=" sessions" title="Devices ranked by sessions" />
+        </Card>
+        <Card>
+          <SectionTitle>All weekdays</SectionTitle>
+          <BarList data={topN(filtered, (s) => DAYS[s.date.getUTCDay()])} unit=" sessions" title="Weekdays ranked by sessions" />
+        </Card>
+      </div>
+
+      <Card>
+        <SectionTitle>Profile → device flow (all sessions)</SectionTitle>
+        <ChartFrame title="Profile to device Sankey">
+          {(full) => (
+            <ResponsiveContainer width="100%" height={full ? 560 : 340}>
+              <Sankey
+                data={flow}
+                nodePadding={16}
+                nodeWidth={12}
+                link={{ stroke: 'color-mix(in srgb, var(--color-ink) 27%, transparent)' }}
+                node={{ fill: 'var(--color-faint)', stroke: 'var(--color-line)' }}
+              >
+                <Tooltip contentStyle={tooltipStyle} labelStyle={{ color: 'var(--color-ink)', fontFamily: 'JetBrains Mono, monospace' }} />
+              </Sankey>
+            </ResponsiveContainer>
+          )}
+        </ChartFrame>
+        <p className="mt-2 text-xs text-subtle">{flow.nodes.length.toLocaleString()} nodes · {flow.links.length.toLocaleString()} profile-device pairs · every session counted.</p>
+      </Card>
+
+      <Card>
+        <SectionTitle>When you watch (UTC) — select any day or hour cell</SectionTitle>
+        <ChartFrame title="Day-hour heatmap">
+          <div className="overflow-x-auto">
+            <table className="text-xs tabular-nums border-separate border-spacing-0.5">
+              <thead>
+                <tr>
+                  <th><span className="sr-only">Weekday</span></th>
+                  {Array.from({ length: 24 }, (_, hour) => (
+                    <th key={hour} className="text-subtle font-normal w-5">{hour % 3 === 0 ? hour : ''}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {heat.map((row, day) => {
+                  const daySessions = row.flatMap((c) => c.sessions)
+                  const daySeconds = row.reduce((sum, c) => sum + c.seconds, 0)
+                  return (
+                    <tr key={day}>
+                      <td className="pr-2 text-right">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          style={{ borderRadius: 0 }}
+                          className="caption-mono h-auto p-0 underline decoration-dotted underline-offset-4 hover:text-ink"
+                          onClick={() => setDrill({ title: `${DAYS[day]}s — all hours (${daySessions.length.toLocaleString()} sessions)`, sessions: daySessions })}
+                          aria-label={`View all ${DAYS[day]} sessions`}
+                        >
+                          {DAYS[day]}
+                        </Button>
+                      </td>
+                      {row.map((cell, hour) => (
+                        <td key={hour}>
+                          <button
+                            onClick={() => setDrill({ title: `${DAYS[day]} ${String(hour).padStart(2, '0')}:00 UTC — ${cell.sessions.length.toLocaleString()} sessions`, sessions: cell.sessions })}
+                            aria-label={`View sessions for ${DAYS[day]} ${String(hour).padStart(2, '0')}:00, ${cell.sessions.length} sessions`}
+                            title={`${DAYS[day]} ${String(hour).padStart(2, '0')}:00 — ${fmtDuration(cell.seconds)} across ${cell.sessions.length.toLocaleString()} sessions. Activate for details.`}
+                            className="block h-5 w-5 rounded-sm"
+                            style={{ background: cell.seconds ? `rgba(var(--heat),${0.06 + 0.94 * (cell.seconds / heatMax)})` : 'var(--color-bg)' }}
+                          />
+                        </td>
+                      ))}
+                      <td className="pl-2 text-subtle whitespace-nowrap">{fmtDuration(daySeconds)}</td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        </ChartFrame>
+        <p className="mt-3 text-xs text-subtle">{filtered.length.toLocaleString()} sessions · {fmtHours(totalSeconds)} total across {new Set(filtered.map((s) => dayKey(s.date))).size.toLocaleString()} days</p>
+      </Card>
+
+      <Card>
+        <SectionTitle>All sessions</SectionTitle>
+        <DataGrid rows={profileRows} />
+      </Card>
+
+      {drill && (
+        <Modal title={drill.title} onClose={() => setDrill(null)}>
+          <DataGrid rows={drill.sessions.map((s) => ({
+            'Start Time': s.start,
+            Profile: s.profile,
+            Title: s.title,
+            Show: s.show,
+            Device: s.device,
+            Duration: fmtDuration(s.seconds),
+          }))} />
+        </Modal>
+      )}
+    </div>
+  )
+}
