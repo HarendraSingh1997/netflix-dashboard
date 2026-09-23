@@ -32,4 +32,10 @@ describe('profileColorVar', () => {
     expect(profileColorVar('A', ranked)).toBe('var(--color-subtle)')
     expect(profileColorVar('Nobody', ranked)).toBe('var(--color-subtle)')
   })
+  it('matches long and colon-containing profile names exactly', () => {
+    const long = 'Everyone: The Main Family Entertainment Collection'
+    const named = ['Harry', 'KB', long]
+    expect(profileColorVar(long, named)).toBe('var(--profile-3)')
+    expect(profileColorVar('Harry: Kid', ['Harry: Kid'])).toBe('var(--profile-1)')
+  })
 })

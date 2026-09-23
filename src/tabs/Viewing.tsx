@@ -62,7 +62,8 @@ export default function Viewing() {
     const name: string = payload.name ?? ''
     const isProfile = name.startsWith('Profile:')
     const bare = shortName(name)
-    const fill = isProfile ? profileColorVar(bare, rankedProfiles) : 'var(--color-faint)'
+    const colorKey = isProfile ? name.slice('Profile:'.length) : name
+    const fill = isProfile ? profileColorVar(colorKey, rankedProfiles) : 'var(--color-faint)'
     const labelX = isProfile ? x - 8 : x + width + 8
     return (
       <g>
@@ -76,12 +77,12 @@ export default function Viewing() {
   const sankeyLink = (props: any) => {
     const { sourceX, sourceY, targetX, targetY, sourceControlX, targetControlX, linkWidth, payload } = props
     const sourceName: string = payload.source.name ?? ''
-    const bare = sourceName.startsWith('Profile:') ? sourceName.slice('Profile:'.length) : shortName(sourceName)
+    const colorKey = sourceName.startsWith('Profile:') ? sourceName.slice('Profile:'.length) : sourceName
     return (
       <path
         d={`M ${sourceX},${sourceY} C ${sourceControlX},${sourceY} ${targetControlX},${targetY} ${targetX},${targetY}`}
         fill="none"
-        stroke={profileColorVar(bare, rankedProfiles)}
+        stroke={profileColorVar(colorKey, rankedProfiles)}
         strokeWidth={Math.max(linkWidth, 1)}
         strokeOpacity={0.8}
       />
