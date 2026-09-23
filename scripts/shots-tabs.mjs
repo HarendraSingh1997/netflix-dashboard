@@ -28,7 +28,7 @@ const TABS = [
   ['Messages & support', 'messages', 'Most frequent messages'],
   ['Games', 'games', 'Playtime by game'],
   ['Account', 'account', 'Communication & privacy preferences'],
-  ['Ask', 'ask', 'Ask about your export'],
+  // ['Ask', 'ask', 'Ask about your export'], // Ask tab temporarily disabled
   ['Data explorer', 'explorer', 'Source files'],
 ]
 

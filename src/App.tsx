@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import {
   Clapperboard, Compass, Database, FolderOpen, Gamepad2, LayoutDashboard,
-  Menu, MessageCircleQuestion, MessagesSquare, MonitorSmartphone, Moon, Receipt, Settings2, Sun,
+  Menu, MessagesSquare, MonitorSmartphone, Moon, Receipt, Settings2, Sun,
+  // MessageCircleQuestion, // Ask tab icon, temporarily disabled
   ThumbsUp, Trash2, Users,
 } from 'lucide-react'
 import { useRouter } from '@tanstack/react-router'
@@ -16,7 +17,7 @@ import Billing from './tabs/Billing'
 import Messages from './tabs/Messages'
 import Games from './tabs/Games'
 import Account from './tabs/Account'
-import Ask from './tabs/Ask'
+// import Ask from './tabs/Ask' // Ask tab temporarily disabled; re-enable with the TABS entry below
 import Explorer from './components/Explorer'
 import Sidebar from './components/Sidebar'
 import FileView from './tabs/FileView'
@@ -37,7 +38,7 @@ export const TABS = [
   { id: 'messages', label: 'Messages & support', icon: MessagesSquare, path: '/messages' },
   { id: 'games', label: 'Games', icon: Gamepad2, path: '/games' },
   { id: 'account', label: 'Account', icon: Settings2, path: '/account' },
-  { id: 'ask', label: 'Ask', icon: MessageCircleQuestion, path: '/ask' },
+  // { id: 'ask', label: 'Ask', icon: MessageCircleQuestion, path: '/ask' }, // temporarily disabled
   { id: 'explorer', label: 'Data explorer', icon: Database, path: '/explorer' },
 ] as const
 
@@ -178,7 +179,7 @@ export default function App({ tab }: { tab: TabId }) {
               <TabsContent value="messages" keepMounted>{visited.has('messages') && <Messages />}</TabsContent>
               <TabsContent value="games" keepMounted>{visited.has('games') && <Games />}</TabsContent>
               <TabsContent value="account" keepMounted>{visited.has('account') && <Account />}</TabsContent>
-              <TabsContent value="ask" keepMounted>{visited.has('ask') && <Ask />}</TabsContent>
+              {/* <TabsContent value="ask" keepMounted>{visited.has('ask') && <Ask />}</TabsContent> */} {/* temporarily disabled */}
               <TabsContent value="explorer" keepMounted>{visited.has('explorer') && <Explorer />}</TabsContent>
               {isFileTab(tab) && (
                 <TabsContent value={tab} keepMounted>

@@ -42,7 +42,7 @@ const TAB_CHECKS = [
   ['Messages & support', 'Most frequent messages'],
   ['Games', 'Playtime by game'],
   ['Account', 'Communication'],
-  ['Ask', 'Ask about your export'],
+  // ['Ask', 'Ask about your export'], // Ask tab temporarily disabled
   ['Data explorer', 'Source files'],
 ]
 for (const [label, expect] of TAB_CHECKS) {

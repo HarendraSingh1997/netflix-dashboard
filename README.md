@@ -47,7 +47,7 @@ Expected files (names vary by export): `ViewingActivity.csv`, `SearchHistory.csv
 | Messages & support | MessagesSentByNetflix, ChatTranscripts, CSContact |
 | Games | GamePlaySession |
 | Account | AccountDetails, TermsOfUse |
-| Ask | RAG/agent/KG over the loaded export |
+<!-- | Ask | RAG/agent/KG over the loaded export | (Ask tab temporarily disabled) -->
 | Data explorer | Raw ViewingActivity grid |
 
 Every tab has KPI cards, a data-driven insights card, and a monthly time chart. Devices adds a tile-grid geo map with per-region drill-down. All charts open icon-only fullscreen.
@@ -79,7 +79,7 @@ Every tab, dark and light (1440px, regenerated with `node scripts/shots-tabs.mjs
 | Messages & support | <img src="screenshots/messages-1440.png" width="420" alt="Messages dark"> | <img src="screenshots/messages-light-1440.png" width="420" alt="Messages light"> |
 | Games | <img src="screenshots/games-1440.png" width="420" alt="Games dark"> | <img src="screenshots/games-light-1440.png" width="420" alt="Games light"> |
 | Account | <img src="screenshots/account-1440.png" width="420" alt="Account dark"> | <img src="screenshots/account-light-1440.png" width="420" alt="Account light"> |
-| Ask | <img src="screenshots/ask-1440.png" width="420" alt="Ask dark"> | <img src="screenshots/ask-light-1440.png" width="420" alt="Ask light"> |
+<!-- | Ask | <img src="screenshots/ask-1440.png" width="420" alt="Ask dark"> | <img src="screenshots/ask-light-1440.png" width="420" alt="Ask light"> | (Ask tab temporarily disabled) -->
 | Data explorer | <img src="screenshots/explorer-1440.png" width="420" alt="Explorer dark"> | <img src="screenshots/explorer-light-1440.png" width="420" alt="Explorer light"> |
 
 ## Optional AI features (BYO key, off by default)

@@ -22,7 +22,7 @@ const TAB_FILES: Record<InsightTabId, string[]> = {
   messages: ['MessagesSentByNetflix.csv', 'ChatTranscripts.csv', 'CSContact.csv'],
   games: ['GamePlaySession.csv'],
   account: ['AccountDetails.csv', 'TermsOfUse.csv'],
-  ask: [],
+  // ask: [], // Ask tab temporarily disabled
   explorer: ['ViewingActivity.csv'],
 }
 
