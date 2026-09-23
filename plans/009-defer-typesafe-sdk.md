@@ -147,17 +147,38 @@ ls dist/assets/*.js
 
 At least two `.js` files must now exist: the entry chunk and a lazily-loaded
 chunk containing the SDK. Then confirm the split by searching the entry chunk
-for a distinctive SDK string, e.g. the `TypeSafeClient` identifier or
-`dangerouslyAllowBrowser` (present at `src/lib/jev.ts:50`):
+for a distinctive SDK string — `dangerouslyAllowBrowser` (present at
+`src/lib/jev.ts:50`):
 
 ```sh
 grep -c "dangerouslyAllowBrowser" dist/assets/index-*.js
 ```
 
+Expected: `0` in the entry chunk, non-zero in the lazily-loaded chunk.
+
+**Reachability note — do not gate on a raw grep count.** Four files import
+`@typesafe-ai/sdk`: this module plus `src/lib/ask/answer.ts:8` and
+`src/lib/ask/dispatcher.ts:9`. The `ask/` ones are *already* excluded from the
+bundle because the Ask tab is disabled: `src/tabs/Ask.tsx` is the only importer
+of `src/lib/ask/*`, and its only importer is the commented-out line at
+`src/App.tsx:20`. Confirm that is still true before worrying about them:
+
+```sh
+grep -c "runAgent\|DATASETS" dist/assets/index-*.js   # expected: 0
+```
+
+If that returns 0, the extra `ask/` importers are irrelevant to this plan —
+proceed rather than stop. Only stop if the ask engine has become reachable
+again (for example someone re-enabled the Ask tab), because then the SDK would
+be pulled in eagerly through a different path and the deferral would be
+incomplete.
+
 Expected: `0` in the entry chunk, non-zero in the lazily-loaded chunk. If the
 entry chunk still contains it, the import did not become dynamic — return to
-Step 1 and check that no other module statically imports `@typesafe-ai/sdk`
-(`grep -rn "@typesafe-ai/sdk" src/` should return only the one dynamic import).
+Step 1 and check that no module **reachable from the entry graph** still
+imports it statically. `src/lib/jev.ts` should be the only occurrence with an
+`await import(`; occurrences under `src/lib/ask/` are expected and harmless
+while the Ask tab stays disabled.
 
 ### Step 3: Run the gate
 
@@ -197,8 +218,9 @@ Machine-checkable. ALL must hold:
 - [ ] `npm run lint` exits 0
 - [ ] `npm test` exits 0 (49 tests)
 - [ ] `ls dist/assets/*.js` lists 2 or more files
-- [ ] `grep -rn "@typesafe-ai/sdk" src/` returns exactly one match, and it contains `await import(`
+- [ ] `grep -n "@typesafe-ai/sdk" src/lib/jev.ts` contains `await import(`
 - [ ] `grep -c "dangerouslyAllowBrowser" dist/assets/index-*.js` → `0`
+- [ ] `grep -c "runAgent\|DATASETS" dist/assets/index-*.js` → `0` (ask engine still excluded)
 - [ ] No files outside `src/lib/jev.ts` are modified (`git status`)
 - [ ] `plans/README.md` status row updated
 
@@ -206,7 +228,11 @@ Machine-checkable. ALL must hold:
 
 Stop and report back (do not improvise) if:
 
-- `grep -rn "@typesafe-ai/sdk" src/` returns more than one module — a second static importer means the deferral will not work and the second site must be reported.
+- A module **outside `src/lib/ask/`** and outside test files statically imports
+  `@typesafe-ai/sdk` and is reachable from the entry graph. (Occurrences under
+  `src/lib/ask/` are expected and are already dead weight while the Ask tab is
+  disabled — they are not a reason to stop.)
+- The ask engine has become reachable again — i.e. `grep -c "runAgent\|DATASETS" dist/assets/index-*.js` is non-zero, or someone re-enabled the Ask tab. Then the SDK is pulled in eagerly through a different path and this plan's single-file approach is incomplete; report rather than widening the scope.
 - `src/lib/store.ts` is not the only caller of `judgeTitlePair` — another caller at module scope would reintroduce eager loading.
 - `npm run build` succeeds but the entry chunk still contains the SDK string (Step 2 fails twice). Do not work around it with a `manualChunks` hack in `vite.config.ts`; report instead.
 - The AI feature breaks at runtime for a reason traced to this change rather than to a missing/invalid API key. Report the actual error; do not weaken the generation-cancellation logic in `store.ts` to make it "work".

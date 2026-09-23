@@ -78,7 +78,7 @@ regression introduced when the Sankey was ported in from the reference project
 |---------|---------|---------------------|
 | Typecheck + build | `npm run build` | `✓ built` |
 | Lint | `npm run lint` | 0 errors (warnings allowed) |
-| Unit tests | `npm test` | 49 tests pass (53 after this plan) |
+| Unit tests | `npm test` | 49 tests pass (50 after this plan) |
 | Visual check | `npm run build && npm run preview` | Sankey node and its links share a color |
 
 ## Scope
@@ -165,7 +165,7 @@ The second assertion documents the intended contract: the raw name is the key,
 so `Harry: Kid` matches itself and is never confused with a different `Harry`
 entry.
 
-**Verify**: `npm test` → `53 passed`.
+**Verify**: `npm test` → `50 passed`.
 
 ### Step 4: Run the gate
 
@@ -192,7 +192,7 @@ the same color. If no such profile exists in the export, report the step as
   a profile name containing a colon.
 - Structural pattern: copy the assertion style of the existing
   `it('sends rank five and unknown names to the muted slot')` case in the same file.
-- `npm test` → all pass, 49 → 53.
+- `npm test` → all pass, 49 → 50.
 
 ## Done criteria
 
