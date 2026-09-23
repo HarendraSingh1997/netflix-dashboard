@@ -66,6 +66,9 @@ export default function App({ tab }: { tab: TabId }) {
     const path = TABS.find((t) => t.id === value)?.path ?? '/'
     void router.navigate({ to: path })
   }
+  useEffect(() => {
+    setVisited((prev) => (prev.has(tab) ? prev : new Set(prev).add(tab)))
+  }, [tab])
   // Hover/keyboard focus starts the route loader early, so the tab's files
   // are already parsing before the click lands.
   function preloadTab(path: (typeof TABS)[number]['path']) {
