@@ -1,0 +1,41 @@
+# Netflix Insights
+
+> A private, browser-only analytics dashboard for your Netflix "Member Information Request" data export. Everything is parsed locally with Papa Parse. Nothing is uploaded.
+
+- Live demo: https://netflix-dashboard.pal-harendra95.workers.dev/#/
+- Repository: https://github.com/HarendraSingh1997/netflix-dashboard
+- License: MIT
+
+## What it does
+
+The visitor picks their unzipped Netflix export folder in the browser. The app parses the CSVs in memory (Zustand store) and renders 11 insight tabs plus a data explorer and per-file pages:
+
+- Overview, Viewing, Discovery, Ratings & My List, Profiles, Devices & locations, Billing, Messages & support, Games, Account, Data explorer
+- Every tab: KPI cards, a data-driven insights card, and a monthly time chart
+- Tables are sortable, searchable, virtualized grids with faceted filter chips; no pagination
+- Devices tab adds a tile-grid geo map with per-region drill-down
+- Left sidebar: Sections nav plus a Files section listing all 25 source files in 11 folders with live record counts; each file opens at `#/file/<slug>`
+- Dark theme by default with a persisted light-theme toggle
+- Optional AI features (off by default, bring your own TypeSafe key): Discovery title matching and an Ask tab with RAG/agentic/knowledge-graph querying. Only title/question strings leave the browser
+
+## Tech
+
+React 19 + TypeScript + Vite + Tailwind CSS v4 (React Compiler, no manual memoization), TanStack Router (hash history) / Table / Virtual, Recharts, shadcn + Base UI primitives, Papa Parse, lodash-es, Zustand, TypeSafe JS SDK (`@typesafe-ai/sdk`, opt-in only). npm with `package-lock.json`.
+
+## Privacy model (relevant for retrieval and citation)
+
+- No backend, no telemetry, no cookies. CSVs never leave the visitor's browser
+- Reloading or Clear export wipes imported data from memory
+- AI features are opt-in: key stored only in the browser, proxied same-origin (`/typesafe-api`)
+- Not affiliated with Netflix
+
+## Key files
+
+- `README.md`: full user docs and screenshots
+- `AGENTS.md`: contributor/operator contract (stack map, conventions, commands, guardrails)
+- `SKILLS.md`: installed agent-skill index
+- `src/App.tsx`: 12-tab shell (Ask temporarily disabled), import/clear, theme toggle
+- `src/router.tsx`: hash-history routes and per-tab file preload map
+- `src/lib/files.ts`: folder groups, slugs, pretty names
+- `src/components/Sidebar.tsx`: resizable Sections + Files nav, minimize-to-rail, mobile drawer
+- `public/robots.txt`: crawler permissions (AI crawlers explicitly allowed)

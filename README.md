@@ -1,5 +1,7 @@
 # Netflix Insights
 
+**Live preview:** https://netflix-dashboard.pal-harendra95.workers.dev/#/
+
 A private, browser-only analytics dashboard for your Netflix "Member Information Request" data export.
 
 Select the extracted export folder and explore viewing, discovery, ratings, profiles, devices, billing, messages, games, and account data. Everything is parsed locally with Papa Parse. Nothing is uploaded, and clearing the dashboard (or reloading) wipes imported data from memory.
@@ -133,7 +135,13 @@ scripts/
   shots.mjs          # screenshot helper
 screenshots/         # committed UI captures (dark, light, mobile)
 plans/               # implementation plans
+public/
+  robots.txt         # crawler permissions (AI crawlers explicitly allowed)
+  llms.txt           # AI-friendly project summary, served at /llms.txt
+  sitemap.xml        # single-URL sitemap for the live demo
 ```
+
+AI crawlers and assistants: start at [`llms.txt`](https://netflix-dashboard.pal-harendra95.workers.dev/llms.txt) for a machine-readable project summary.
 
 ## Tech
 
