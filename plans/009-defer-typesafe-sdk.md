@@ -85,7 +85,7 @@ already does.
 |---------|---------|---------------------|
 | Typecheck + build | `npm run build` | `✓ built` |
 | Lint | `npm run lint` | 0 errors (warnings allowed) |
-| Unit tests | `npm test` | 49 tests pass |
+| Unit tests | `npm test` | 50 tests pass |
 | Bundle check | `npm run build && ls dist/assets/*.js` | more than one `.js` file in `dist/assets` |
 
 ## Scope
@@ -145,16 +145,22 @@ npm run build
 ls dist/assets/*.js
 ```
 
-At least two `.js` files must now exist: the entry chunk and a lazily-loaded
-chunk containing the SDK. Then confirm the split by searching the entry chunk
-for a distinctive SDK string — `dangerouslyAllowBrowser` (present at
-`src/lib/jev.ts:50`):
+At least two `.js` files must now exist: the entry chunk (`index-*.js`) and a
+lazily-loaded chunk holding the SDK. Confirm the split by probing the entry
+chunk for an **SDK-internal** string. The app itself still mentions
+`apiKey`, `baseURL`, and `dangerouslyAllowBrowser` — those are option names in
+this module's own `new TypeSafeClient({...})` call, so they correctly remain in
+the entry chunk. Do NOT use them as the probe.
 
 ```sh
-grep -c "dangerouslyAllowBrowser" dist/assets/index-*.js
+grep -c "x-typesafe"        dist/assets/index-*.js   # expected: 0
+grep -c "application/json"  dist/assets/index-*.js   # expected: 0
+grep -l "x-typesafe"        dist/assets/*.js         # the lazy chunk, not index-*
 ```
 
-Expected: `0` in the entry chunk, non-zero in the lazily-loaded chunk.
+All three must agree: SDK internals absent from the entry chunk, present in a
+sibling chunk. Record the entry chunk's byte size before and after; the entry
+chunk should shrink by roughly 10–25 kB.
 
 **Reachability note — do not gate on a raw grep count.** Four files import
 `@typesafe-ai/sdk`: this module plus `src/lib/ask/answer.ts:8` and
@@ -216,10 +222,10 @@ Machine-checkable. ALL must hold:
 
 - [ ] `npm run build` exits 0
 - [ ] `npm run lint` exits 0
-- [ ] `npm test` exits 0 (49 tests)
+- [ ] `npm test` exits 0 (50 tests)
 - [ ] `ls dist/assets/*.js` lists 2 or more files
 - [ ] `grep -n "@typesafe-ai/sdk" src/lib/jev.ts` contains `await import(`
-- [ ] `grep -c "dangerouslyAllowBrowser" dist/assets/index-*.js` → `0`
+- [ ] `grep -c "x-typesafe" dist/assets/index-*.js` → `0` and `grep -l "x-typesafe" dist/assets/*.js` returns a chunk that is NOT `index-*`
 - [ ] `grep -c "runAgent\|DATASETS" dist/assets/index-*.js` → `0` (ask engine still excluded)
 - [ ] No files outside `src/lib/jev.ts` are modified (`git status`)
 - [ ] `plans/README.md` status row updated

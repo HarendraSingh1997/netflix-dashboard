@@ -32,13 +32,33 @@ layer or use dynamic `import()`.
 | 004 | Standardize on npm as the single package manager | P1 | S | — | DONE |
 | 005 | Self-host fonts and make the privacy claim true | P1 | S | — | DONE |
 | 006 | Restore the E2E verification scripts so they exercise the current UI | P1 | S | — | TODO |
-| 007 | Keep the mounted-tab set in sync with the URL | P1 | S | — | TODO |
-| 008 | Look up Sankey profile colors by full name, not the truncated label | P1 | S | — | TODO |
-| 009 | Load the TypeSafe SDK on first title match, not on page load | P1 | S | — | TODO |
+| 007 | Keep the mounted-tab set in sync with the URL | P1 | S | — | DONE |
+| 008 | Look up Sankey profile colors by full name, not the truncated label | P1 | S | — | DONE |
+| 009 | Load the TypeSafe SDK on first title match, not on page load | P1 | S | — | DONE |
 | 010 | Code-split tab implementations out of the entry chunk | P1 | L | 009 | TODO |
 | 011 | Decide and prototype a sample export so the live demo is viewable | P2 | M | — | TODO |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (with one-line reason) | REJECTED (with one-line rationale)
+
+Execution notes for the 2026-09-23 run (advisor as reviewer; the tooling had no
+isolated-worktree dispatch, so executors ran in the main tree and every hunk was
+reviewed by hand before commit):
+
+- **007** approved as specified. Manual Back/Forward and direct-hash checks were
+  **not** performed — no real export was loaded. Automated criteria pass.
+- **008** approved. The plan predicted 53 tests; the actual total is 50, because
+  the new case is one `it` with two assertions. Plan corrected.
+- **009** took two executor rounds. Both stops were **plan defects, not code
+  defects**: the first gate counted raw SDK importers instead of reachability,
+  the second used `dangerouslyAllowBrowser` as a probe string — but that is an
+  option name in the module's own `new TypeSafeClient({...})` call, so it
+  correctly stays in the entry chunk. The source change was correct on the first
+  attempt. Plan now probes SDK-internal strings (`x-typesafe`,
+  `application/json`). Result: entry chunk 1,122,933 → 1,112,232 bytes, SDK
+  moved to an 11,910-byte lazy chunk. **Step 4 (live API-key call) is
+  unverified** — no key was available and none was obtained.
+- Neither 007 nor 008 has automated UI coverage; both are covered by the
+  manual sweep in 006, which is still TODO.
 
 ## Dependency notes
 
