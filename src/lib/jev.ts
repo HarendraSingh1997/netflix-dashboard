@@ -9,8 +9,6 @@
  * title strings per call — never counts, profiles, or account data. Callers
  * must gate it behind explicit user opt-in (see Discovery). */
 
-import { TypeSafeClient, noul, score } from '@typesafe-ai/sdk'
-
 export const JEV_MODEL = 'jev-latest'
 export const MAX_PAIRS = 40
 
@@ -22,12 +20,6 @@ const LEVELS = [
 
 const OUTCOMES = ['different', 'related', 'same'] as const
 export type PairOutcome = (typeof OUTCOMES)[number]
-
-const QUESTIONS = {
-  link: score('How do the two title strings relate as Netflix shows?', [...LEVELS]),
-  same_base: noul('Do both titles name the same base show, ignoring season, episode, year, or edition differences?'),
-  same_scope: noul('Do both titles refer to the same scope — the same show and installment, not different seasons, episodes, or editions?'),
-}
 
 export interface PairJudgment {
   outcome: PairOutcome
@@ -43,6 +35,12 @@ export function routeOutcome(value: number): PairOutcome {
 }
 
 export async function judgeTitlePair(apiKey: string, a: string, b: string): Promise<PairJudgment> {
+  const { TypeSafeClient, noul, score } = await import('@typesafe-ai/sdk')
+  const questions = {
+    link: score('How do the two title strings relate as Netflix shows?', [...LEVELS]),
+    same_base: noul('Do both titles name the same base show, ignoring season, episode, year, or edition differences?'),
+    same_scope: noul('Do both titles refer to the same scope — the same show and installment, not different seasons, episodes, or editions?'),
+  }
   // Browser-only app + user-supplied personal key: the key holder accepts the
   // exposure risk by pasting it (or setting VITE_TYPESAFE_API_KEY locally).
   // Requests go through the same-origin Vite proxy (see vite.config.ts) because
@@ -51,7 +49,7 @@ export async function judgeTitlePair(apiKey: string, a: string, b: string): Prom
   const response = await client.systemOne(
     {
       state: { title_a: a, title_b: b },
-      questions: QUESTIONS,
+      questions,
       model: JEV_MODEL,
     },
     { timeout: 45000 },
